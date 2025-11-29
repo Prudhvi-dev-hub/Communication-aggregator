@@ -1,0 +1,185 @@
+High-Level Design (HLD) – Communication Aggregator System
+
+## 1. Overview
+
+The Communication Aggregator System is designed to receive communication requests from a web/mobile application and intelligently route them to the correct delivery channel (Email, SMS, WhatsApp). The system is fully asynchronous, event-driven, and built with independent microservices communicating through Kafka.
+
+This architecture ensures scalability, resilience, observability, and clean separation of concerns.
+
+---
+
+## 2. System Goals
+
+* Accept and validate incoming communication requests
+* Route messages to the correct delivery service
+* Ensure reliable, asynchronous processing
+* Support retries and DLQ handling
+* Provide complete observability using centralized logging and Elasticsearch + Kibana
+* Keep microservices independent, scalable, and easily extendable
+
+---
+
+## 3. Architecture Diagram
+
+IMAGE ATTAHCED IN PROJECT FOLDER
+
+---
+
+## 4. Components Overview
+
+### 4.1 Task Router Service
+
+* Entry point for all API requests (REST/HTTP)
+* Validates input payloads
+* Determines communication channel based on `channel` field
+* Publishes events to Kafka topics:
+    * `send.email`
+    * `send.sms`
+    * `send.whatsapp`
+* Generates `traceId` for request correlation
+* Sends logs to `logs.router` topic
+
+### 4.2 Email Service
+
+* Consumes messages from `send.email`
+* Simulates email sending
+* Maintains retry logic
+* On success/failure publishes logs to `logs.delivery.email`
+* Writes delivery attempts into local SQLite DB
+
+### 4.3 SMS Service
+
+* Consumes `send.sms` topic
+* Simulates SMS sending with retry logic
+* Publishes logs to `logs.delivery.sms`
+* Persists SMS delivery data in SQLite
+
+### 4.4 WhatsApp Service
+
+* Consumes `send.whatsapp` topic
+* Applies retry policies
+* Publishes logs to `logs.delivery.whatsapp`
+* Stores history in SQLite
+
+### 4.5 Logging Service
+
+* Subscribes to all log events using topic pattern: `logs.*`
+* Indexes logs into **Elasticsearch** using structured documents
+* Acts as centralized log collector
+
+### 4.6 Infrastructure Components
+
+* **Kafka** → Core message broker for asynchronous communication
+* **Zookeeper** → Coordinates Kafka
+* **Elasticsearch** → Stores logs for analysis
+* **Kibana** → Visualization dashboard for logs and traces
+
+---
+
+## 5. Event Flow
+
+### 5.1 Sending a Message
+
+1.  Client sends request to Task Router API
+2.  Task Router validates request
+3.  Task Router publishes message to relevant Kafka topic
+4.  Corresponding channel service consumes the message
+5.  Service attempts sending operation
+6.  Service publishes logs (success/failure/retry)
+7.  Logging service indexes logs into Elasticsearch
+8.  Logs become searchable on Kibana
+
+---
+
+## 6. Communication Pattern Choice
+
+### Why Kafka?
+
+Kafka was chosen as the primary communication backbone because:
+
+* **Asynchronous Processing** — Delivery services operate independently and never block API flow
+* **Loose Coupling** — Adding or removing channels does not impact other services
+* **Scalability** — Each service can scale horizontally by increasing consumer instances
+* **Retry Handling** — Kafka natively supports redelivery, consumer groups, and DLQ patterns
+* **High Throughput** — Ideal for large-scale notification pipelines
+* **Event Replay** — Logs and events can be replayed for debugging or rebuilding DBs
+
+This ensures a robust, enterprise-grade event-driven architecture.
+
+---
+
+## 7. Database Design (SQLite + Prisma)
+
+Each delivery service maintains its own SQLite DB with:
+
+* Message details
+* Retry count
+* Status (pending/sent/failed)
+* Timestamps
+
+This follows the Database per Microservice pattern.
+
+---
+
+## 8. Logging & Observability
+
+### Logging Strategy
+
+Each microservice emits structured logs into Kafka under topics:
+
+* `logs.router`
+* `logs.delivery.email`
+* `logs.delivery.sms`
+* `logs.delivery.whatsapp`
+
+### Centralized Logging
+
+Logging service:
+
+* Subscribes to `logs.*`
+* Adds metadata (timestamp, traceId, service)
+* Indexes logs into Elasticsearch
+
+Kibana provides:
+
+* Trace analysis
+* Filtering across services
+* Error patterns
+* Retry visualization
+
+---
+
+## 9. Error Handling & Reliability
+
+### Retries
+
+Each delivery service maintains its own retry logic.
+
+### Dead Letter Queue (DLQ)
+
+If retries exceed the allowed threshold:
+
+* Message is routed to DLQ topic
+* Logged for investigation
+* Can be reprocessed manually
+
+### Fault Isolation
+
+Failure in Email service does not affect SMS or WhatsApp.
+
+---
+
+## 10. Scalability Considerations
+
+* Each microservice can scale independently
+* Kafka partitions allow parallel consumption
+* Logging service can scale horizontally
+* Elasticsearch cluster can scale for heavy log traffic
+
+---
+
+## 11. Summary
+
+This system is designed using best practices of microservice architecture, event-driven systems, and centralized logging. Each component is independent, scalable, fault-tolerant, and easily extendable.
+
+It is aligned with modern production-ready communication systems used by enterprises.

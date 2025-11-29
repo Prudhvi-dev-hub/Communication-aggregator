@@ -1,0 +1,89 @@
+{
+  "info": {
+    "name": "Communication Aggregator Collection",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Send Email",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"channel\": \"email\",\n  \"to\": \"user@example.com\",\n  \"subject\": \"Hello!\",\n  \"body\": \"This is a test email\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:3001/route",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3001",
+          "path": [
+            "route"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Send SMS",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"channel\": \"sms\",\n  \"to\": \"+1234567890\",\n  \"body\": \"Test SMS message\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:3001/route",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3001",
+          "path": [
+            "route"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Send WhatsApp",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"channel\": \"whatsapp\",\n  \"to\": \"+19876543210\",\n  \"body\": \"Test WhatsApp message\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:3001/route",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3001",
+          "path": [
+            "route"
+          ]
+        }
+      }
+    }
+  ]
+}
