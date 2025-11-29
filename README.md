@@ -1,268 +1,342 @@
-Communication Aggregator Microservices System
+# 📡 Communication Aggregator – Microservices System
 
-1. Clone the Repository
+A distributed system built using **NestJS + Kafka + Prisma + Elasticsearch + Kibana**, implementing message routing across Email, SMS, and WhatsApp delivery microservices.
 
+# 🚀 1. Clone the Repository
+
+```bash
 git clone <github-repo-url>
 cd <your-repo-folder>
-Make sure the folder structure is like this:
+```
 
+### 📁 Folder Structure
+
+```
 /communication-aggregator
-├── /task-router-service
-├── /email-service
-├── /sms-service
-├── /whatsapp-service
-├── /logging-service
+├── task-router-service
+├── email-service
+├── sms-service
+├── whatsapp-service
+├── logging-service
 ├── docker-compose.yml
 └── README.md
+```
 
-2. Install Dependencies for Each Microservice
-Run the commands below from the root, but inside each folder:
+---
 
-Task Router Service
-Bash
+# 📦 2. Install Dependencies (All Microservices)
 
+Run the following inside each service folder:
+
+### **Task Router Service**
+
+```bash
 cd task-router-service
 yarn install
-Email Service
-Bash
+```
 
+### **Email Service**
+
+```bash
 cd ../email-service
 yarn install
-SMS Service
-Bash
+```
 
+### **SMS Service**
+
+```bash
 cd ../sms-service
 yarn install
-WhatsApp Service
-Bash
+```
 
+### **WhatsApp Service**
+
+```bash
 cd ../whatsapp-service
 yarn install
-Logging Service
-Bash
+```
 
+### **Logging Service**
+
+```bash
 cd ../logging-service
 yarn install
+```
 
-3. Setup Databases (Prisma)
-For each microservice that uses Prisma, run the migration command:
+---
 
-Task Router
-Bash
+# 🗄️ 3. Setup Databases (Prisma Migrations)
 
+### **Task Router**
+
+```bash
 cd task-router-service
 npx prisma migrate dev
-Email Service
-Bash
+```
 
+### **Email**
+
+```bash
 cd ../email-service
 npx prisma migrate dev
-SMS Service
-Bash
+```
 
+### **SMS**
+
+```bash
 cd ../sms-service
 npx prisma migrate dev
-WhatsApp Service
-Bash
+```
 
+### **WhatsApp**
+
+```bash
 cd ../whatsapp-service
 npx prisma migrate dev
-Note: Logging service doesn’t need DB migrations.
+```
 
-4. Start Kafka, Zookeeper, Elasticsearch, Kibana
-Go to the project root:
+> ⚠️ Logging service does **not** require migrations.
 
-Bash
+---
 
-cd ..
+# 🐳 4. Start Kafka, Zookeeper, Elasticsearch, Kibana
+
+From the **project root**:
+
+```bash
 docker compose up -d
-This starts the following services:
+```
 
-Kafka
+This starts:
 
-Zookeeper
+* Kafka
+* Zookeeper
+* Elasticsearch
+* Kibana
 
-Elasticsearch
+### ✔ Validate Services
 
-Kibana
-
-Validation Checks
-Check if services are running:
-
-Bash
-
+```bash
 docker ps
-Validate Kafka broker:
+```
 
-Bash
+### Check Kafka Logs
 
+```bash
 docker logs kafka
-Validate Elasticsearch:
+```
+
+### Test Elasticsearch
+
+Open in browser:
+
+```
+http://localhost:9200
+```
+
+### Test Kibana
+
+```
+http://localhost:5601
+```
+
+(Wait 1–2 minutes for Kibana to boot.)
+
+---
+
+# ▶️ 5. Start All Microservices
+
+Use **separate terminals** for each service.
+
+### 1️⃣ Task Router
+
+```bash
+cd task-router-service
+yarn start:dev
+```
+
+### 2️⃣ Email Service
+
+```bash
+cd email-service
+yarn start:dev
+```
+
+### 3️⃣ SMS Service
+
+```bash
+cd sms-service
+yarn start:dev
+```
+
+### 4️⃣ WhatsApp Service
+
+```bash
+cd whatsapp-service
+yarn start:dev
+```
+
+### 5️⃣ Logging Service
+
+```bash
+cd logging-service
+yarn start:dev
+```
+
+---
+
+# 📨 6. Test the System (Send Request)
+
+Send a POST request to Task Router:
+
+### **Endpoint**
+
+```
+POST http://localhost:3001/route
+```
+
+### Sample Email Payload
+
+```json
+{
+  "channel": "email",
+  "to": "user@example.com",
+  "subject": "Welcome!",
+  "body": "Your OTP is 1234"
+}
+```
+
+### 🔄 Expected Flow
+
+1. Task Router → publishes to `send.email`
+2. Email Service → consumes & simulates delivery
+3. Email Service → publishes logs to `logs.delivery.email`
+4. Logging Service → consumes logs
+5. Logs stored inside Elasticsearch
+6. View logs in Kibana
+
+---
+
+# 📊 7. View Logs in Kibana
 
 Visit:
 
-http://localhost:9200
-
-You should see an ES JSON response.
-
-Validate Kibana:
-
+```
 http://localhost:5601
+```
 
-Kibana may take 1–2 minutes to boot.
+### Steps:
 
-5. Start All Microservices
-Open 5 terminals (one per service).
+1. Go to **Discover**
+2. Create index pattern:
 
-1️⃣ Task Router
-Bash
+```
+logs.*
+```
 
-cd task-router-service
-yarn start:dev
-2️⃣ Email Service
-Bash
+3. Set time filter → "Last 15 minutes"
+4. Explore logs from:
 
-cd email-service
-yarn start:dev
-3️⃣ SMS Service
-Bash
+   * Task Router
+   * Email
+   * SMS
+   * WhatsApp
+   * Logging Service
 
-cd sms-service
-yarn start:dev
-4️⃣ WhatsApp Service
-Bash
+---
 
-cd whatsapp-service
-yarn start:dev
-5️⃣ Logging Service
-Bash
+# 🧪 8. Test All Channels
 
-cd logging-service
-yarn start:dev
+### SMS Test
 
-6. Test the System (Send a Request)
-Send a POST request to the Task Router:
-
-Endpoint
-POST http://localhost:<task-router-port>/route
-Sample Payload (Email)
-JSON
-
+```json
 {
-"channel": "email",
-"to": "user@example.com",
-"subject": "Welcome!",
-"body": "Your OTP is 1234"
+  "channel": "sms",
+  "to": "+1234567890",
+  "body": "Your code is 8899"
 }
-Expected Behavior
-Task Router publishes to send.email.
+```
 
-Email service consumes it.
+### WhatsApp Test
 
-Email service simulates email send.
-
-Email service publishes logs to logs.delivery.email.
-
-Logging service consumes logs and writes to Elasticsearch.
-
-Kibana can display the logs under pattern logs.*.
-
-7. Check Logs in Kibana
-Open:
-
-http://localhost:5601
-
-Then follow these steps:
-
-Go to Discover.
-
-Create Index Pattern: logs.*.
-
-Set time filter to Last 15 minutes.
-
-You will see logs from:
-
-Task Router
-
-Email Service
-
-SMS Service
-
-WhatsApp Service
-
-Logging Service
-
-8. Test All Channels
-SMS Example
-JSON
-
+```json
 {
-"channel": "sms",
-"to": "+1234567890",
-"body": "Your code is 8899"
+  "channel": "whatsapp",
+  "to": "+9876543210",
+  "body": "Hello from WhatsApp!"
 }
-WhatsApp Example
-JSON
+```
 
-{
-"channel": "whatsapp",
-"to": "+9876543210",
-"body": "Hello from WhatsApp!"
-}
-Optional Cleanup
-Stop all microservices:
+---
 
-Ctrl + C (in each terminal)
-Stop all Docker services:
+# 🧹 Optional Cleanup
 
-Bash
+Stop microservices:
 
+```
+Ctrl + C
+```
+
+Stop Docker stack:
+
+```bash
 docker compose down
-Environment Variables Configuration
-Before running the project, create .env files for each microservice using the templates below.
+```
 
-Each folder must contain its own .env file:
+---
 
-/task-router-service/.env
+# 🔐 Environment Variables Required
 
-/email-service/.env
+Each service must contain a `.env` file.
 
-/sms-service/.env
+### **task-router-service/.env**
 
-/whatsapp-service/.env
-
-/logging-service/.env
-
-Copy the contents below into each file:
-
-Task Router .env
+```
 PORT=3001
 KAFKA_BROKERS=localhost:9092
-Email Service .env
+```
+
+### **email-service/.env**
+
+```
 PORT=3002
 KAFKA_BROKERS=localhost:9092
-SMS Service .env
+```
+
+### **sms-service/.env**
+
+```
 PORT=3003
 KAFKA_BROKERS=localhost:9092
-WhatsApp Service .env
+```
+
+### **whatsapp-service/.env**
+
+```
 PORT=3004
 KAFKA_BROKERS=localhost:9092
-Logging Service .env
+```
+
+### **logging-service/.env**
+
+```
 PORT=3005
 KAFKA_BROKERS=localhost:9092
-Postman Collection
-A Postman Collection is included to help you test the system easily.
+```
 
-Download or import the file:
+---
 
-"postman_collection.json"
+# 📬 Postman Collection
 
-It contains:
+Import the included file:
 
-Sample Email Request
+```
+postman_collection.json
+```
 
-Sample SMS Request
+It includes:
 
-Sample WhatsApp Request
-
-Default localhost URLs for Task Router Service
+* Email request
+* SMS request
+* WhatsApp request
+* Ready-to-use Task Router API calls
