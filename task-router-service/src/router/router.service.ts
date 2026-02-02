@@ -6,7 +6,7 @@ import { WhatsappProducer } from 'src/kafka/whatsapp.producer';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { SendMessageDto } from './dto/create-message.dto';
 import { ChannelEnum } from './enums/router.enum';
-import { v4 as UUID } from 'uuid';
+import { uuid as UUID } from 'uuidv4';
 
 @Injectable()
 export class RouterService {
@@ -16,7 +16,7 @@ export class RouterService {
     private smsProducer: SmsProducer,
     private whatsappProducer: WhatsappProducer,
     private logsProducer: LogsProducer,
-  ) {}
+  ) { }
 
   async routeMessage(dto: SendMessageDto) {
     // 1. Deduplication (prevent same message more than once)
@@ -65,3 +65,4 @@ export class RouterService {
     return { message: 'Message forwarded', requestId };
   }
 }
+

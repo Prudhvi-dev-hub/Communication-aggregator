@@ -340,3 +340,22 @@ It includes:
 * SMS request
 * WhatsApp request
 * Ready-to-use Task Router API calls
+
+
+# Failure Scenarios Considered
+
+### 1. Email Service Down
+
+If the email service is down, the email messages will not be delivered. The task router will not receive any response from the email service, and the logs will not be updated. The logs will be stored in the Elasticsearch cluster, and the logs will be available in the Kibana dashboard.
+
+### 2. SMS Service Down
+
+If the SMS service is down, the SMS messages will not be delivered. The task router will not receive any response from the SMS service, and the logs will not be updated. The logs will be stored in the Elasticsearch cluster, and the logs will be available in the Kibana dashboard.
+
+### 3. WhatsApp Service Down
+
+If the WhatsApp service is down, the WhatsApp messages will not be delivered. The task router will not receive any response from the WhatsApp service, and the logs will not be updated. The logs will be stored in the Elasticsearch cluster, and the logs will be available in the Kibana dashboard.
+
+### 4. Logging Service Down
+
+If the logging service is down, the logs will not be updated. The logs will be stored in the Elasticsearch cluster, and the logs will be available in the Kibana dashboard.
